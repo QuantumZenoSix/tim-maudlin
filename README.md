@@ -14,33 +14,38 @@ https://quantumzenosix.github.io/tim-maudlin/dist/
 
 ### Specific
 
-- Vue JS 3.0 : The website itself was built on the Vue 3.0 JS framework using the Vue CLI and is fully mobile responsive. 
+- Vue JS 3.0 : The website itself was built on the Vue 3.0 JS framework using the Vue CLI and is fully mobile responsive.
 - Materialize CSS : I used materialize for the responsive grid system, and to handle small components (cards, tooltips, etc).
- - Google Material icons : Used icons throughout the site.
- - Flexbox : Used for each section to center elements and keep site mobile-responsive.
- - CSS Grid : Used on media section to layout videos.
- - SCSS : Styling written is SCSS.
- - Greensock Gsap : Used Gsap for animation using the ScrollTrigger plugin.
+- Google Material icons : Used icons throughout the site.
+- Flexbox : Used for each section to center elements and keep site mobile-responsive.
+- CSS Grid : Used on media section to layout videos.
+- SCSS : Styling written is SCSS.
+- Greensock Gsap : Used Gsap for animation using the ScrollTrigger plugin.
 
 ## Project setup
+
 ```
 npm install
 ```
 
 ### Compiles and hot-reloads for development
+
 ```
 npm run serve
 ```
 
 ### Compiles and minifies for production
+
 ```
 npm run build
 ```
 
 ### Lints and fixes files
+
 ```
 npm run lint
 ```
 
 ### Customize configuration
+
 See [Configuration Reference](https://cli.vuejs.org/config/).
