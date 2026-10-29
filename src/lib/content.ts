@@ -46,7 +46,7 @@ export interface InfoItem {
 }
 
 export const profile = {
-	bio: `Tim Maudlin has interests primarily focused in the foundations of physics, metaphysics, and logic. His books include Quantum Non-Locality and Relativity (Blackwell, 3rd edition now available), Truth and Paradox (Oxford), The Metaphysics Within Physics (Oxford)and two volumes of 'Philosophy of Physics'. He is a member of the Academie Internationale de Philosophie des Sciences and the Foundational Questions Institute (FQXi). He has been a Guggenheim Fellow. He taught at Rutgers from 1986 to 2011, and has been a visiting professor at Harvard.`,
+	bio: `Tim Maudlin has interests primarily focused in the foundations of physics, metaphysics, and logic. His books include Quantum Non-Locality and Relativity (Blackwell, 3rd edition now available), Truth and Paradox (Oxford), The Metaphysics Within Physics (Oxford) and two volumes of 'Philosophy of Physics'. He is a member of the Academie Internationale de Philosophie des Sciences and the Foundational Questions Institute (FQXi). He has been a Guggenheim Fellow. He taught at Rutgers from 1986 to 2011, and has been a visiting professor at Harvard.`,
 	education: [
 		{ text: 'Ph.D. Pittsburgh, History and Philosophy of Science' },
 		{ text: 'B.A. Yale, Physics and Philosophy' }
@@ -150,7 +150,7 @@ export const books: Book[] = [
 		description: [
 			'The third edition of Quantum Non-Locality and Relativity has been carefully updated to reflect significant developments, including a new chapter covering important recent work in the foundations of physics.',
 			'The third edition includes a premier philosophical study of Bell’s Theorem and its implication for the relativistic account of space and time as well as the "Free Will Theorem" of John Conway and Simon Kochen.',
-			'Also included is a discussion of Roderich Tumiulka’s explicit, relativistic theory that can reproduce the quantum mechanical violation of Bell’s inequality.',
+			'Also included is a discussion of Roderich Tumulka’s explicit, relativistic theory that can reproduce the quantum mechanical violation of Bell’s inequality.',
 			'This book introduces philosophers to the relevant physics and demonstrates how philosophical analysis can help inform physics.'
 		],
 		link: 'https://onlinelibrary.wiley.com/doi/book/10.1002/9781444396973'
@@ -188,7 +188,6 @@ export interface Video {
 }
 
 // The first video is shown in the main player when the page loads.
-// TODO(owner): add the replacement for the private video G11L_WFLwIM here.
 export const videos: Video[] = [
 	{
 		id: 'KXriGVf00mk',
@@ -196,11 +195,15 @@ export const videos: Video[] = [
 	},
 	{ id: 'hC3ckLqsL5M', title: 'The Problem With Quantum Theory | Tim Maudlin' },
 	{ id: '-TXVhxm5oAU', title: 'Philosophy in Quantum Theory | Tim Maudlin' },
-	{ id: 'JS75WK4cHz8', title: 'Tim Maudlin - Multiverse - Where Do We Go From Here? (Part 2)' }
+	{ id: 'JS75WK4cHz8', title: 'Tim Maudlin - Multiverse - Where Do We Go From Here? (Part 2)' },
+	{
+		id: 'VbXEc9vpeIM',
+		title: 'What We’ve Gotten Wrong About Quantum Physics | World Science Festival'
+	}
 ];
 
-// TODO(owner): the address the Contact button opens in the visitor's mail app. It is public.
-export const contactEmail = 'REPLACE_WITH_CONTACT_EMAIL';
+// The address the Contact button opens in the visitor's mail app. It is public.
+export const contactEmail = 'twm3@nyu.edu';
 
 export const credit = {
 	text: 'Tim Maudlin 2020 || Website Design and Development by',
