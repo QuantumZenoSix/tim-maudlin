@@ -2,7 +2,7 @@
 
 This website was built for Tim Maudlin, a Professor of Philosophy from NYU and it serves as a introduction to him and his work. I reached out to Tim because I'm an admirer of his work and offered a pro bono site for him. The site was completely designed and developed by me without the use of any templates or mockups.
 
-https://quantumzenosix.github.io/tim-maudlin/dist/
+https://quantumzenosix.github.io/tim-maudlin/
 
 ## Technologies used
 
@@ -12,7 +12,7 @@ https://quantumzenosix.github.io/tim-maudlin/dist/
 - Google Fonts (Playfair Display SC, Nanum Myeongjo) and Google Material Icons.
 - Playwright for browser tests; ESLint and Prettier for code quality.
 
-The site was originally built with Vue 3, Vue CLI and Materialize CSS. That version's build output is still in `dist/` until the SvelteKit deployment replaces it.
+The site was originally built with Vue 3, Vue CLI and Materialize CSS, and served from `/tim-maudlin/dist/`. That version's build output stays in `dist/` until the new deployment is live (see [Deployment](#deployment)).
 
 ## Requirements
 
@@ -59,8 +59,31 @@ To run one file or test: `npx playwright test e2e/motion.e2e.ts` or `npx playwri
 - `src/lib/content.ts`: all text, links, books, videos and the contact email. Edit content here; every section renders from it.
 - `src/lib/sections/`: the page sections (Home, About, Books, Articles, Media, Contact).
 - `src/lib/components/`: shared pieces (navigation, flip-over card, lightbox, video gallery, section layout).
+- `src/lib/motion.ts`: the scroll animation engine and the nav link scrolling. Each section lists its own animation steps, which target elements by their `data-motion` attribute; renaming or removing one of those attributes drops that part of the effect.
 - `src/lib/styles/`: design tokens (`_tokens.scss`) and global styles (`global.scss`).
 - `vite.config.ts`: build settings (base path, static adapter, Sass).
+- `static/`: files copied into the build as they are. `static/dist/` takes over the old site's address (see below).
+- `e2e/`: browser tests.
+- `.github/workflows/deploy.yml`: tests and deployment.
+
+## Deployment
+
+GitHub Actions publishes the site to GitHub Pages (`.github/workflows/deploy.yml`):
+
+- Every pull request runs the type check, lint and browser tests.
+- Every push to `master` runs the same checks, then publishes `build/` to https://quantumzenosix.github.io/tim-maudlin/. Nothing is published if a check fails, including the publish checks for placeholder content.
+- A deploy can also be started by hand from the repository's Actions tab ("Run workflow").
+
+The repository's Settings → Pages → Source must be set to "GitHub Actions". The built site isn't committed; Actions builds it each time.
+
+### The old address
+
+The old site lived at `/tim-maudlin/dist/`. Two files in `static/dist/` keep that address working:
+
+- `index.html` redirects to the new site, keeping the section in the link (`/tim-maudlin/dist/#media-link` goes to `/tim-maudlin/#media-link`).
+- `service-worker.js` replaces the old site's service worker, which cached the whole old site in returning visitors' browsers. When they come back, it clears that cache, removes itself and reloads the page, which then redirects.
+
+Keep both for as long as old links and returning visitors matter.
 
 ## Comparing with the old site
 
@@ -70,4 +93,4 @@ While the old Vue build is still in `dist/`, it can be served next to the new on
 python3 -m http.server 8765 --directory dist
 ```
 
-Then open http://localhost:8765/.
+Then open http://localhost:8765/. `dist/` can be deleted once the new deployment is live.

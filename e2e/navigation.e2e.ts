@@ -44,6 +44,12 @@ test.describe('desktop rail', () => {
 		await page.goto('#media-link');
 		await expect.poll(() => distanceFrom(page, 'media-link')).toBeLessThanOrEqual(4);
 	});
+
+	test('old links to /tim-maudlin/dist/ redirect, keeping the section', async ({ page }) => {
+		await page.goto('dist/#media-link');
+		await expect(page).toHaveURL(/\/tim-maudlin\/#media-link$/);
+		await expect.poll(() => distanceFrom(page, 'media-link')).toBeLessThanOrEqual(4);
+	});
 });
 
 test.describe('phone menu', () => {
