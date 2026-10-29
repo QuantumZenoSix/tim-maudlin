@@ -50,7 +50,7 @@ The tests run at desktop and phone sizes and cover:
 - `e2e/motion.e2e.ts`: the scroll assembly. Sections are assembled when they arrive, blocks land without overlapping on phones, nothing moves with reduced motion, and switching between desktop and phone widths keeps the visitor's place.
 - `e2e/page.e2e.ts`: no errors, missing files or sideways scrolling.
 
-Some checks run only in CI (`CI=1 npm run test:e2e` runs them locally). They fail while the contact email or the fifth video is still a placeholder, so placeholder content can't be deployed.
+Some checks run only in CI (`CI=1 npm run test:e2e` runs them locally). They fail if any placeholder content (`REPLACE_WITH…`) is left in the page, so it can't be deployed.
 
 To run one file or test: `npx playwright test e2e/motion.e2e.ts` or `npx playwright test -g "phone menu"`. Add `--ui` to watch them run.
 

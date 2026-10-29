@@ -52,9 +52,4 @@ test.describe('ready to publish', () => {
 		await page.goto('');
 		expect(await page.content()).not.toContain('REPLACE_WITH');
 	});
-
-	test('has all five videos, like the original', async ({ page }) => {
-		await page.goto('');
-		await expect(page.locator('#media-link .thumbnail')).toHaveCount(5);
-	});
 });

@@ -135,3 +135,82 @@ test('switching between desktop and phone widths keeps the visitor’s place', a
 		expect(await page.evaluate(() => scrollY)).toBeGreaterThan(1000);
 	}
 });
+
+for (const [label, device] of [
+	['desktop', desktop],
+	['phone', phone]
+] as const) {
+	test(`pieces move smoothly with the scroll, never jumping (${label})`, async ({ browser }) => {
+		// Every step is scrubbed, so each piece's state is a smooth function of the scroll position.
+		// A jump means two steps fight over a property (the Publications II panel used to vanish the
+		// moment it started leaving).
+		const context = await browser.newContext(device);
+		const page = await context.newPage();
+		await page.goto('');
+		const snapshot = () =>
+			page.locator('[data-motion]').evaluateAll((elements) =>
+				elements.map((el) => {
+					const style = getComputedStyle(el);
+					const m = new DOMMatrix(style.transform);
+					return { name: el.dataset.motion, opacity: Number(style.opacity), scale: m.a };
+				})
+			);
+		type Snapshot = Awaited<ReturnType<typeof snapshot>>;
+		const jumps = (before: Snapshot, after: Snapshot, opacity: number, scale: number) =>
+			after.flatMap((piece, i) =>
+				Math.abs(piece.opacity - before[i].opacity) > opacity ||
+				Math.abs(piece.scale - before[i].scale) > scale
+					? [
+							`${piece.name}: opacity ${before[i].opacity}→${piece.opacity}, scale ${before[i].scale}→${piece.scale}`
+						]
+					: []
+			);
+
+		const height = await page.evaluate(() => document.documentElement.scrollHeight);
+		let previous = await snapshot();
+		for (let y = 20; y < height; y += 20) {
+			await scrollTo(page, y);
+			const current = await snapshot();
+			if (jumps(previous, current, 0.25, 0.1).length > 0) {
+				// A big change can also be a short, steep animation (Contact's last block is squeezed
+				// into the end of the page). Look closer: those change only a little per 2px.
+				await scrollTo(page, y - 20);
+				let step = await snapshot();
+				for (let fine = y - 18; fine <= y; fine += 2) {
+					await scrollTo(page, fine);
+					const next = await snapshot();
+					expect(jumps(step, next, 0.15, 0.05), `between scrollY ${fine - 2} and ${fine}`).toEqual(
+						[]
+					);
+					step = next;
+				}
+			}
+			previous = current;
+		}
+		await context.close();
+	});
+}
+
+test.describe('phone, after an accordion panel opens', () => {
+	test.use(phone);
+
+	test('sections below still assemble as they arrive', async ({ page }) => {
+		// Opening the panel makes the page taller; the scroll ranges below must be measured again.
+		await page.goto('');
+		await scrollTo(page, await pageTop(page, '#publications-II-link'));
+		await page.getByRole('button', { name: 'Featured Reads' }).click();
+		// Let it finish opening (300 ms), so the page has its new height.
+		await expect(page.getByRole('region', { name: 'Featured Reads' })).toBeVisible();
+		await page.waitForTimeout(500);
+
+		const height = page.viewportSize()!.height;
+		await expect(async () => {
+			const top = await pageTop(page, '#media-link [data-motion=content]');
+			await scrollTo(page, top - height * 0.95 + 5);
+			const opacity = await page
+				.locator('#media-link [data-motion=content]')
+				.evaluate((el) => Number(getComputedStyle(el).opacity));
+			expect(opacity).toBeLessThan(0.2);
+		}).toPass({ timeout: 3000 });
+	});
+});

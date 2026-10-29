@@ -4,6 +4,15 @@
 	import { featuredReads, publicationProfiles } from '#lib/content.js';
 	import { choreograph, phoneAssembly } from '#lib/motion.js';
 	import backdrop from '#lib/assets/img/geo-04.jpg';
+	import type { Snippet } from 'svelte';
+	import { cubicInOut } from 'svelte/easing';
+	import { prefersReducedMotion } from 'svelte/motion';
+	import { slide } from 'svelte/transition';
+
+	// An accordion: at most one panel open, opening one closes the other. Both slide like the
+	// original Materialize collapsible (300 ms, ease in and out).
+	const accordionId = $props.id();
+	let openPanel: string | null = $state(null);
 
 	// The panel grows into place while its backdrop rises from far below; as the section leaves,
 	// the panel sinks, shrinks and fades. (The panel's entry and exit run in this order.)
@@ -50,40 +59,65 @@
 	}}
 	{motion}
 >
-	<!-- Sharing a `name` makes the two panels an accordion: opening one closes the other. -->
 	<div class="accordion">
-		<details name="articles">
-			<summary><Icon name="import_contacts" />Featured Reads</summary>
-			<ul class="body">
-				{#each featuredReads as read (read.link)}
-					<li>
-						<p class="source">{read.source}:</p>
-						<a href={read.link} target="_blank" rel="external noopener">
-							<Icon name="label_outline" />
-							<span>{read.title}</span>
-						</a>
-					</li>
-				{/each}
-			</ul>
-		</details>
-		<details name="articles">
-			<summary><Icon name="collections_bookmark" />Articles &amp; other Published work</summary>
-			<div class="body">
-				<p class="intro">Here you can find the latest publications available:</p>
-				<ul>
-					{#each publicationProfiles as profile (profile.link)}
-						<li>
-							<a class="underlined" href={profile.link} target="_blank" rel="external noopener">
-								<Icon name="label_outline" />
-								<span>{profile.source}</span>
-							</a>
-						</li>
-					{/each}
-				</ul>
-			</div>
-		</details>
+		{@render item('reads', 'import_contacts', 'Featured Reads', reads)}
+		{@render item('profiles', 'collections_bookmark', 'Articles & other Published work', profiles)}
 	</div>
 </Section>
+
+{#snippet item(key: string, icon: string, title: string, body: Snippet)}
+	{@const open = openPanel === key}
+	<h3>
+		<button
+			type="button"
+			id="{accordionId}-{key}-header"
+			aria-expanded={open}
+			aria-controls="{accordionId}-{key}"
+			onclick={() => (openPanel = open ? null : key)}
+		>
+			<Icon name={icon} />{title}
+		</button>
+	</h3>
+	{#if open}
+		<div
+			id="{accordionId}-{key}"
+			class="body"
+			role="region"
+			aria-labelledby="{accordionId}-{key}-header"
+			transition:slide={{ duration: prefersReducedMotion.current ? 0 : 300, easing: cubicInOut }}
+		>
+			{@render body()}
+		</div>
+	{/if}
+{/snippet}
+
+{#snippet reads()}
+	<ul>
+		{#each featuredReads as read (read.link)}
+			<li>
+				<p class="source">{read.source}:</p>
+				<a href={read.link} target="_blank" rel="external noopener">
+					<Icon name="label_outline" />
+					<span>{read.title}</span>
+				</a>
+			</li>
+		{/each}
+	</ul>
+{/snippet}
+
+{#snippet profiles()}
+	<p class="intro">Here you can find the latest publications available:</p>
+	<ul>
+		{#each publicationProfiles as profile (profile.link)}
+			<li>
+				<a class="underlined" href={profile.link} target="_blank" rel="external noopener">
+					<Icon name="label_outline" />
+					<span>{profile.source}</span>
+				</a>
+			</li>
+		{/each}
+	</ul>
+{/snippet}
 
 <style lang="scss">
 	@use 'tokens' as *;
@@ -94,20 +128,23 @@
 		box-shadow: $shadow-1;
 	}
 
-	summary {
+	h3 {
+		font: inherit;
+	}
+
+	button {
 		display: flex;
 		align-items: center;
 		gap: 16px;
+		width: 100%;
 		padding: 16px;
+		border: 0;
 		border-bottom: 1px solid #ddd;
 		background: #fff;
+		color: inherit;
 		line-height: 24px;
+		text-align: left;
 		cursor: pointer;
-		list-style: none;
-
-		&::-webkit-details-marker {
-			display: none;
-		}
 
 		:global(.material-icons) {
 			width: 2rem;

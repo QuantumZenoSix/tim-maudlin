@@ -187,7 +187,7 @@ export interface Video {
 	title: string;
 }
 
-// The first video is shown in the main player when the page loads.
+// The first video is shown in the main player when the page loads. Four thumbnails fill one row.
 export const videos: Video[] = [
 	{
 		id: 'KXriGVf00mk',
@@ -195,11 +195,7 @@ export const videos: Video[] = [
 	},
 	{ id: 'hC3ckLqsL5M', title: 'The Problem With Quantum Theory | Tim Maudlin' },
 	{ id: '-TXVhxm5oAU', title: 'Philosophy in Quantum Theory | Tim Maudlin' },
-	{ id: 'JS75WK4cHz8', title: 'Tim Maudlin - Multiverse - Where Do We Go From Here? (Part 2)' },
-	{
-		id: 'VbXEc9vpeIM',
-		title: 'What We’ve Gotten Wrong About Quantum Physics | World Science Festival'
-	}
+	{ id: 'JS75WK4cHz8', title: 'Tim Maudlin - Multiverse - Where Do We Go From Here? (Part 2)' }
 ];
 
 // The address the Contact button opens in the visitor's mail app. It is public.

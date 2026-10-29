@@ -65,11 +65,45 @@ test('the reveal button is clickable across its whole face', async ({ page }) =>
 });
 
 test('article accordion keeps one panel open', async ({ page }) => {
-	const details = page.locator('#publications-II-link details');
-	await details.nth(0).locator('summary').click();
-	await details.nth(1).locator('summary').click();
-	await expect(details.nth(0)).not.toHaveAttribute('open');
-	await expect(details.nth(1)).toHaveAttribute('open');
+	await arrive(page, 'publications-II-link');
+	const articles = page.locator('#publications-II-link');
+	const reads = articles.getByRole('button', { name: 'Featured Reads' });
+	const profiles = articles.getByRole('button', { name: 'Articles & other Published work' });
+
+	await reads.click();
+	await expect(reads).toHaveAttribute('aria-expanded', 'true');
+	await expect(articles.getByRole('region', { name: 'Featured Reads' })).toBeVisible();
+
+	await profiles.click();
+	await expect(profiles).toHaveAttribute('aria-expanded', 'true');
+	await expect(reads).toHaveAttribute('aria-expanded', 'false');
+	await expect(articles.getByRole('region')).toHaveCount(1);
+
+	await profiles.click();
+	await expect(profiles).toHaveAttribute('aria-expanded', 'false');
+	await expect(articles.getByRole('region')).toHaveCount(0);
+});
+
+test('article accordion panels slide open instead of popping', async ({ page }) => {
+	await arrive(page, 'publications-II-link');
+	await page.getByRole('button', { name: 'Featured Reads' }).click();
+	// The panel's height on each frame of the next half second.
+	const heights = await page.evaluate(
+		() =>
+			new Promise<number[]>((done) => {
+				const heights: number[] = [];
+				const start = performance.now();
+				(function sample() {
+					const panel = document.querySelector('#publications-II-link [role=region]');
+					heights.push(panel?.getBoundingClientRect().height ?? 0);
+					if (performance.now() - start < 500) requestAnimationFrame(sample);
+					else done(heights);
+				})();
+			})
+	);
+	const full = Math.max(...heights);
+	const between = heights.filter((h) => h > 1 && h < full - 1);
+	expect(between.length, heights.map(Math.round).join(' ')).toBeGreaterThanOrEqual(3);
 });
 
 test('photo lightbox opens and closes with Escape', async ({ page }) => {
@@ -93,4 +127,12 @@ test('video gallery loads YouTube only once a video is chosen', async ({ page })
 		'src',
 		/youtube-nocookie\.com.*hC3ckLqsL5M/
 	);
+});
+
+test('video thumbnails fill exactly one row', async ({ page }) => {
+	const tops = await page
+		.locator('#media-link .thumbnail')
+		.evaluateAll((elements) => elements.map((el) => Math.round(el.getBoundingClientRect().top)));
+	expect(tops).toHaveLength(4);
+	expect(new Set(tops).size).toBe(1);
 });

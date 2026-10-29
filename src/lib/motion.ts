@@ -59,7 +59,27 @@ function find(root: HTMLElement, name: string): HTMLElement[] {
 	return Array.from(root.querySelectorAll<HTMLElement>(`[data-motion="${name}"]`));
 }
 
+/**
+ * The resting value of every property a `to` step animates, read before any step runs. A `to`
+ * tween would otherwise take its starting values from the element as it first renders, and if an
+ * earlier `from` step animates the same property, that is the `from` step's scattered state: the
+ * Articles panel used to vanish the moment it started leaving, because it "faded" from opacity 0.
+ */
+function restingValues(root: HTMLElement, steps: Step[]) {
+	const rest = new Map<Element, Record<string, number | string>>();
+	for (const step of steps) {
+		if (!step.to) continue;
+		for (const el of find(root, step.target)) {
+			const values = rest.get(el) ?? {};
+			for (const prop of Object.keys(step.to)) values[prop] ??= gsap.getProperty(el, prop);
+			rest.set(el, values);
+		}
+	}
+	return rest;
+}
+
 function play(root: HTMLElement, steps: Step[]) {
+	const rest = restingValues(root, steps);
 	for (const step of steps) {
 		const targets = find(root, step.target);
 		if (targets.length === 0) {
@@ -88,12 +108,29 @@ function play(root: HTMLElement, steps: Step[]) {
 			// GSAP's default ease (power1.out) is kept on purpose: the original tweens used it, and
 			// it sets how pieces decelerate as they settle.
 			if (step.from) gsap.from(group.targets, { ...step.from, scrollTrigger });
-			if (step.to) gsap.to(group.targets, { ...step.to, scrollTrigger });
+			if (step.to) {
+				const from = Object.fromEntries(
+					Object.keys(step.to).map((prop) => [
+						prop,
+						(_: number, el: Element) => rest.get(el)?.[prop]
+					])
+				);
+				// Not rendered until its range starts, so it doesn't override an earlier `from` step.
+				gsap.fromTo(group.targets, from, { ...step.to, immediateRender: false, scrollTrigger });
+			}
 		}
 	}
 }
 
-let keepingScroll = false;
+let setUp = false;
+
+/** Page-wide ScrollTrigger behaviour, set up the first time a section attaches. */
+function setUpOnce() {
+	if (setUp) return;
+	setUp = true;
+	keepScrollOnBreakpointChange();
+	refreshWhenPageHeightChanges();
+}
 
 /**
  * ScrollTrigger scrolls to the top while it measures, then restores the position. But crossing the
@@ -102,8 +139,6 @@ let keepingScroll = false;
  * place. Remember the position ourselves and put it back if needed.
  */
 function keepScrollOnBreakpointChange() {
-	if (keepingScroll) return;
-	keepingScroll = true;
 	let y = 0;
 	ScrollTrigger.addEventListener('refreshInit', () => (y = window.scrollY));
 	ScrollTrigger.addEventListener('refresh', () => {
@@ -114,12 +149,29 @@ function keepScrollOnBreakpointChange() {
 }
 
 /**
+ * Scroll ranges are measured in page pixels once, so when content changes height (an accordion
+ * panel opening, a longer book description), every section below would animate in the wrong place:
+ * on phones, Media had already landed before it came into view. Re-measure once the height settles.
+ */
+function refreshWhenPageHeightChanges() {
+	let height = document.documentElement.scrollHeight;
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	new ResizeObserver(() => {
+		const current = document.documentElement.scrollHeight;
+		if (current === height) return;
+		height = current;
+		clearTimeout(timer);
+		timer = setTimeout(() => ScrollTrigger.refresh(), 100);
+	}).observe(document.body);
+}
+
+/**
  * Attach to a section's root element. Steps are created in order (later steps may build on
  * earlier ones), and everything is reverted when the breakpoint changes or the section unmounts.
  */
 export function choreograph(choreography: Choreography): Attachment<HTMLElement> {
 	return (root) => {
-		keepScrollOnBreakpointChange();
+		setUpOnce();
 		const media = gsap.matchMedia();
 		media.add(DESKTOP, () => play(root, choreography.desktop));
 		media.add(PHONE, () => play(root, choreography.phone));
