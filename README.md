@@ -34,14 +34,25 @@ The `/tim-maudlin/` path is intentional: the site is published under that path o
 
 ## Checks and tests
 
-| Command            | What it does                                                                                           |
-| ------------------ | ------------------------------------------------------------------------------------------------------ |
-| `npm run check`    | TypeScript and Svelte type checking.                                                                   |
-| `npm run lint`     | Formatting (Prettier) and code rules (ESLint).                                                         |
-| `npm run format`   | Fixes formatting automatically.                                                                        |
-| `npm run test:e2e` | Builds the site, starts a preview server on port 4173 and runs the browser tests in `src/**/*.e2e.ts`. |
+| Command            | What it does                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------------- |
+| `npm run check`    | TypeScript and Svelte type checking.                                                        |
+| `npm run lint`     | Formatting (Prettier) and code rules (ESLint).                                              |
+| `npm run format`   | Fixes formatting automatically.                                                             |
+| `npm run test:e2e` | Builds the site, starts a preview server on port 4173 and runs the browser tests in `e2e/`. |
 
 The first `npm run test:e2e` downloads a headless Chromium (about 120 MB) into `~/.cache/ms-playwright/`. The tests need port 4173, so stop any running `npm run preview` first.
+
+The tests run at desktop and phone sizes and cover:
+
+- `e2e/widgets.e2e.ts`: the book year tabs, the flip-over cards, the article accordion, the photo lightbox and the video gallery.
+- `e2e/navigation.e2e.ts`: nav links scroll to their section at the original speed, update the URL and can be cancelled by scrolling; the phone menu.
+- `e2e/motion.e2e.ts`: the scroll assembly. Sections are assembled when they arrive, blocks land without overlapping on phones, nothing moves with reduced motion, and switching between desktop and phone widths keeps the visitor's place.
+- `e2e/page.e2e.ts`: no errors, missing files or sideways scrolling.
+
+Some checks run only in CI (`CI=1 npm run test:e2e` runs them locally). They fail while the contact email or the fifth video is still a placeholder, so placeholder content can't be deployed.
+
+To run one file or test: `npx playwright test e2e/motion.e2e.ts` or `npx playwright test -g "phone menu"`. Add `--ui` to watch them run.
 
 ## Where things are
 

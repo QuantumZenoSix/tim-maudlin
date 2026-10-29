@@ -93,12 +93,33 @@ function play(root: HTMLElement, steps: Step[]) {
 	}
 }
 
+let keepingScroll = false;
+
+/**
+ * ScrollTrigger scrolls to the top while it measures, then restores the position. But crossing the
+ * desktop/phone breakpoint replaces every trigger, and each new one clears the position it saved
+ * (GSAP 3.15), so the page would be left at the top: a visitor rotating a tablet would lose their
+ * place. Remember the position ourselves and put it back if needed.
+ */
+function keepScrollOnBreakpointChange() {
+	if (keepingScroll) return;
+	keepingScroll = true;
+	let y = 0;
+	ScrollTrigger.addEventListener('refreshInit', () => (y = window.scrollY));
+	ScrollTrigger.addEventListener('refresh', () => {
+		if (Math.round(window.scrollY) === Math.round(y)) return;
+		window.scrollTo({ top: y, behavior: 'instant' });
+		ScrollTrigger.update();
+	});
+}
+
 /**
  * Attach to a section's root element. Steps are created in order (later steps may build on
  * earlier ones), and everything is reverted when the breakpoint changes or the section unmounts.
  */
 export function choreograph(choreography: Choreography): Attachment<HTMLElement> {
 	return (root) => {
+		keepScrollOnBreakpointChange();
 		const media = gsap.matchMedia();
 		media.add(DESKTOP, () => play(root, choreography.desktop));
 		media.add(PHONE, () => play(root, choreography.phone));
