@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { asset } from '$app/paths';
+	import '#lib/styles/global.scss';
 	import type { LayoutProps } from './$types';
 
 	let { children }: LayoutProps = $props();
