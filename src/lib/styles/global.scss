@@ -6,15 +6,10 @@
 	box-sizing: border-box;
 }
 
+// No `scroll-behavior: smooth`: nav links animate the scroll in script (see scrollToSection),
+// and the CSS setting would fight it.
 html {
 	-webkit-text-size-adjust: 100%;
-}
-
-// Nav links jump to sections; animate that only for people who haven't asked for less motion.
-@media (prefers-reduced-motion: no-preference) {
-	html {
-		scroll-behavior: smooth;
-	}
 }
 
 body {

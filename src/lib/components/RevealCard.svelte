@@ -16,6 +16,8 @@
 		triggerIcon: string;
 		triggerLabel: string;
 		tone?: 'red' | 'grey';
+		/** Whether the reveal panel is showing. Bind to it to close the panel from outside. */
+		open?: boolean;
 	}
 
 	let {
@@ -25,11 +27,14 @@
 		revealTitle,
 		triggerIcon,
 		triggerLabel,
-		tone = 'grey'
+		tone = 'grey',
+		open = $bindable(false)
 	}: Props = $props();
 
 	const panelId = $props.id();
-	let open = $state(false);
+	// The card only clips while the panel is on screen (including its closing slide), like
+	// Materialize; otherwise scroll animations may scale the media beyond the card's edges.
+	let clipped = $state(false);
 	let trigger: HTMLButtonElement;
 	let closeButton: HTMLButtonElement | undefined = $state();
 
@@ -45,13 +50,24 @@
 	}
 </script>
 
-<article class="card">
-	<div class="media">
+<article class="card" class:clipped data-motion="card">
+	<div class="media" data-motion="card-media">
 		{@render media()}
+	</div>
+	<div class="body" data-motion="card-body">
+		{@render children()}
+	</div>
+	<!--
+		The button sits on the media's bottom edge but must paint above the body, which the scroll
+		animations put on its own layer. This layer shares the media's grid cell (so it has the same
+		box) and the same `card-media` animation, so the button still moves exactly with the media.
+	-->
+	<div class="fab-layer" data-motion="card-media">
 		<button
 			bind:this={trigger}
 			type="button"
 			class="fab"
+			data-motion="fab"
 			aria-expanded={open}
 			aria-controls={open ? panelId : undefined}
 			onclick={show}
@@ -59,9 +75,6 @@
 			<Icon name={triggerIcon} />
 			<span class="visually-hidden">{triggerLabel}</span>
 		</button>
-	</div>
-	<div class="body">
-		{@render children()}
 	</div>
 	{#if open}
 		<!-- svelte-ignore a11y_no_noninteractive_element_interactions (Escape closes the panel) -->
@@ -77,6 +90,8 @@
 				duration: prefersReducedMotion.current ? 0 : 300
 			}}
 			onkeydown={(event) => event.key === 'Escape' && hide()}
+			onintrostart={() => (clipped = true)}
+			onoutroend={() => (clipped = false)}
 		>
 			<div class="reveal-header">
 				<h3 class="reveal-title">{revealTitle}</h3>
@@ -95,10 +110,19 @@
 
 	.card {
 		position: relative;
-		overflow: hidden;
+		display: grid;
 		background: #fff;
 		border-radius: 2px;
 		@include hoverable($shadow-2);
+
+		&.clipped {
+			overflow: hidden;
+		}
+	}
+
+	.media,
+	.fab-layer {
+		grid-area: 1 / 1;
 	}
 
 	.media {
@@ -111,14 +135,21 @@
 	}
 
 	.body {
+		grid-row: 2;
 		padding: 24px;
+	}
+
+	.fab-layer {
+		position: relative;
+		z-index: 1;
+		pointer-events: none;
 	}
 
 	.fab {
 		position: absolute;
 		right: 24px;
 		bottom: -20px;
-		z-index: 1;
+		pointer-events: auto;
 		display: grid;
 		place-items: center;
 		width: 40px;

@@ -2,14 +2,53 @@
 	import Icon from '#lib/components/Icon.svelte';
 	import Section from '#lib/components/Section.svelte';
 	import { featuredReads, publicationProfiles } from '#lib/content.js';
+	import { choreograph, phoneAssembly } from '#lib/motion.js';
 	import backdrop from '#lib/assets/img/geo-04.jpg';
+
+	// The panel grows into place while its backdrop rises from far below; as the section leaves,
+	// the panel sinks, shrinks and fades. (The panel's entry and exit run in this order.)
+	const motion = choreograph({
+		desktop: [
+			{
+				target: 'panel',
+				trigger: 'panel',
+				range: ['top bottom', 'top top'],
+				from: { opacity: 0, backgroundPosition: '30% -210vh', scale: 0.8 }
+			},
+			{ target: 'title-card', range: ['top bottom', 'top top'], from: { yPercent: -1000 } },
+			{
+				target: 'title-block',
+				range: ['top bottom', 'top top'],
+				from: { opacity: 0.5, yPercent: -1500 }
+			},
+			{
+				target: 'panel-inner',
+				trigger: 'panel-inner',
+				range: ['top center', 'top top'],
+				from: { opacity: 0 }
+			},
+			{ target: 'intro', range: ['top top', 'bottom top'], to: { yPercent: 100 } },
+			{
+				target: 'panel',
+				range: ['top top', 'bottom top'],
+				to: { opacity: 0, yPercent: 85, scale: 0.9 }
+			}
+		],
+		phone: phoneAssembly()
+	});
 </script>
 
 <Section
 	id="publications-II-link"
 	title="Publications II"
 	blocks={[{ primary: 'Published Articles & More' }]}
-	panel={{ image: backdrop, position: 'center', overlay: 'rgba(185, 185, 185, 0.6)' }}
+	panel={{
+		image: backdrop,
+		position: 'center top',
+		fill: 'rgba(185, 185, 185, 0.6)',
+		gapBelow: '50px'
+	}}
+	{motion}
 >
 	<!-- Sharing a `name` makes the two panels an accordion: opening one closes the other. -->
 	<div class="accordion">

@@ -1,5 +1,8 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { navItems } from '#lib/content.js';
+	import { scrollToSection } from '#lib/motion.js';
 	import Icon from './Icon.svelte';
 
 	let drawer: HTMLDialogElement;
@@ -13,13 +16,30 @@
 
 	function onDrawerClick(event: MouseEvent) {
 		// A click on the dialog element itself (not its content) is a click on the backdrop.
-		// Clicking a link closes too; the browser then follows the link to its section.
-		if (event.target === drawer || (event.target as Element).closest('a')) drawer.close();
+		if (event.target === drawer) drawer.close();
 	}
 
 	function onDrawerClose() {
 		drawerOpen = false;
 		menuButton.focus({ preventScroll: true });
+	}
+
+	// Section links scroll with the site's own animation (see scrollToSection). Modified clicks
+	// (new tab etc.) and no-JS visits fall back to the plain anchor link.
+	function onSectionLink(event: MouseEvent, id: string) {
+		if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+			return;
+		}
+		event.preventDefault();
+		const fromDrawer = drawer.open;
+		if (fromDrawer) drawer.close();
+		const go = () =>
+			// Once there, put the section in the URL (shallow: no navigation, scroll or focus change).
+			scrollToSection(id, () => goto(resolve(`#${id}`), { shallow: true }));
+		// Let the drawer finish closing (and hand focus back) before scrolling, so that doesn't
+		// count as the visitor scrolling and cancel the animation.
+		if (fromDrawer) requestAnimationFrame(go);
+		else go();
 	}
 </script>
 
@@ -27,7 +47,7 @@
 	<ul>
 		{#each navItems as item (item.id)}
 			<li>
-				<a href="#{item.id}">
+				<a href="#{item.id}" onclick={(event) => onSectionLink(event, item.id)}>
 					<span aria-hidden="true">{item.numeral}</span>
 					<span class="visually-hidden">{item.label}</span>
 					<span class="tooltip" aria-hidden="true">{item.label}</span>
@@ -61,7 +81,9 @@
 	<nav aria-label="Sections">
 		<ul>
 			{#each navItems as item (item.id)}
-				<li><a href="#{item.id}">{item.label}</a></li>
+				<li>
+					<a href="#{item.id}" onclick={(event) => onSectionLink(event, item.id)}>{item.label}</a>
+				</li>
 			{/each}
 		</ul>
 	</nav>

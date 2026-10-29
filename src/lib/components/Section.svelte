@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import type { Attachment } from 'svelte/attachments';
 	import type { TitleBlock } from '#lib/content.js';
 	import TitleCard from './TitleCard.svelte';
 
@@ -7,11 +8,26 @@
 		id: string;
 		title: string;
 		blocks: TitleBlock[];
-		/** Right-hand panel backdrop. `overlay` is a translucent colour laid over `image`. */
-		panel: { color?: string; image?: string; position?: string; overlay?: string };
+		/**
+		 * Right-hand panel backdrop: `color` (default none) and `image` sit behind a full-size
+		 * inner layer painted with `fill` (often translucent), which holds the content. On desktop,
+		 * `padBottom` extends the backdrop below the content and `gapBelow` leaves page background
+		 * under the panel; both reproduce the original section heights the scroll ranges rely on.
+		 */
+		panel: {
+			color?: string;
+			image?: string;
+			position?: string;
+			fill?: string;
+			padBottom?: string;
+			gapBelow?: string;
+		};
 		/** Width of the content column inside the panel on desktop. */
 		width?: 'narrow' | 'medium' | 'wide';
-		class?: string;
+		/** 110vh instead of 100vh on desktop, as in the original About and Books sections. */
+		tall?: boolean;
+		/** Scroll choreography, see `#lib/motion`. */
+		motion?: Attachment<HTMLElement>;
 		children: Snippet;
 	}
 
@@ -21,7 +37,8 @@
 		blocks,
 		panel,
 		width = 'medium',
-		class: className = '',
+		tall = false,
+		motion,
 		children
 	}: Props = $props();
 
@@ -30,20 +47,24 @@
 			panel.color && `--panel-color: ${panel.color}`,
 			panel.image && `--panel-image: url('${panel.image}')`,
 			panel.position && `--panel-position: ${panel.position}`,
-			panel.overlay && `--panel-overlay: ${panel.overlay}`
+			panel.fill && `--panel-fill: ${panel.fill}`,
+			panel.padBottom && `--panel-pad-bottom: ${panel.padBottom}`,
+			panel.gapBelow && `--panel-gap-below: ${panel.gapBelow}`
 		]
 			.filter(Boolean)
 			.join('; ')
 	);
 </script>
 
-<section {id} class="section {className}" aria-labelledby="{id}-title">
-	<div class="intro">
+<section {id} class="section" class:tall aria-labelledby="{id}-title" {@attach motion}>
+	<div class="intro" data-motion="intro">
 		<TitleCard {title} headingId="{id}-title" {blocks} />
 	</div>
-	<div class="panel" style={panelStyle}>
-		<div class="content width-{width}">
-			{@render children()}
+	<div class="panel" data-motion="panel" style={panelStyle}>
+		<div class="panel-inner" data-motion="panel-inner">
+			<div class="content width-{width}" data-motion="content">
+				{@render children()}
+			</div>
 		</div>
 	</div>
 </section>
@@ -52,55 +73,69 @@
 	@use 'tokens' as *;
 
 	.section {
+		// Clips pieces while they're scattered outside the section, as on the original site.
+		overflow: hidden;
 		background: $primary;
 
 		@include desktop {
 			display: grid;
 			// 1/12 offset, 4/12 title column, 7/12 panel: the original Materialize grid.
 			grid-template-columns: 8.333% 33.333% 1fr;
-			min-height: 100vh;
 		}
 	}
 
 	.intro {
 		padding: 48px $gutter 32px;
 
+		// The title is centred in the section's first screenful, not its full height.
 		@include desktop {
 			grid-column: 2;
+			align-self: start;
 			display: flex;
 			align-items: center;
+			height: 100vh;
 			padding: 0 12px;
 		}
 	}
 
 	.panel {
-		position: relative;
 		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 40px $gutter;
-		background-color: var(--panel-color, #{$tertiary});
+		// No colour by default: when the scroll animations pan the image away, the page shows
+		// through, as on the original site.
+		background-color: var(--panel-color, transparent);
 		background-image: var(--panel-image, none);
-		background-position: var(--panel-position, center top);
+		background-position: var(--panel-position, left top);
 		background-size: cover;
 		background-repeat: no-repeat;
 
-		// Translucent wash between the photo and the content.
-		&::before {
-			content: '';
-			position: absolute;
-			inset: 0;
-			background: var(--panel-overlay, transparent);
-		}
-
 		@include desktop {
 			grid-column: 3;
+			margin-bottom: var(--panel-gap-below, 0);
+			padding-bottom: var(--panel-pad-bottom, 0);
+		}
+	}
+
+	.panel-inner {
+		display: flex;
+		flex: 1;
+		align-items: center;
+		justify-content: center;
+		padding: 40px $gutter;
+		background: var(--panel-fill, transparent);
+
+		// The section's height comes from here (plus the panel's padBottom/gapBelow), as on the
+		// original site; the scroll ranges are measured against it.
+		@include desktop {
+			min-height: 100vh;
 			padding: 70px 0;
+
+			.tall & {
+				min-height: 110vh;
+			}
 		}
 	}
 
 	.content {
-		position: relative;
 		width: 100%;
 
 		@include desktop {

@@ -14,10 +14,10 @@
 	let { title, headingId, level = 2, blocks, accent = 'secondary' }: Props = $props();
 </script>
 
-<div class="title-card accent-{accent}">
+<div class="title-card accent-{accent}" data-motion="title-card">
 	<svelte:element this={`h${level}`} id={headingId} class="title">{title}</svelte:element>
 	{#each blocks as block (block.primary)}
-		<div class="block">
+		<div class="block" data-motion="title-block">
 			<p class="primary">{block.primary}</p>
 			{#if block.secondary}
 				<p class="secondary">{block.secondary}</p>

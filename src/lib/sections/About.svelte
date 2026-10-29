@@ -4,6 +4,8 @@
 	import RevealCard from '#lib/components/RevealCard.svelte';
 	import Section from '#lib/components/Section.svelte';
 	import { profile, type InfoItem } from '#lib/content.js';
+	import { choreograph, phoneAssembly } from '#lib/motion.js';
+	import geometry from '#lib/assets/img/geo-03.jpg';
 	import portrait from '#lib/assets/img/profile.jpg';
 
 	const lists: { heading: string; icon: string; items: InfoItem[] }[] = [
@@ -11,14 +13,41 @@
 		{ heading: 'Memberships', icon: 'turned_in_not', items: profile.memberships },
 		{ heading: 'Awards', icon: 'class', items: profile.awards }
 	];
+
+	// The title drops in from far above while the panel falls like a curtain over the Home
+	// artwork; the grey layer fades in over it and the bio shrinks into place from 2.7x.
+	const motion = choreograph({
+		desktop: [
+			{
+				target: 'intro',
+				range: ['top bottom', 'top top'],
+				from: { opacity: 0, scale: 0.8, yPercent: -500 }
+			},
+			{
+				target: 'panel',
+				range: ['top bottom', 'top 5%'],
+				from: { backgroundColor: '#eeeeee', yPercent: -700 }
+			},
+			{ target: 'panel-inner', range: ['top center', 'top top'], from: { opacity: 0 } },
+			{ target: 'fab', range: ['top 90%', 'bottom bottom'], from: { opacity: 0, xPercent: -300 } },
+			{ target: 'panel-inner', range: ['bottom bottom', 'bottom top'], to: { yPercent: 100 } },
+			{ target: 'title-card', range: ['top top', 'bottom top'], to: { yPercent: 200 } },
+			{ target: 'bio', range: ['top bottom', 'bottom bottom'], from: { yPercent: 200, scale: 2.7 } }
+		],
+		phone: phoneAssembly([
+			{ target: 'bio', trigger: 'self', range: ['top 95%', 'top 60%'], from: { y: 40, opacity: 0 } }
+		])
+	});
 </script>
 
 <Section
 	id="about-tim-link"
 	title="About Tim"
 	blocks={[{ primary: 'Professor of Philosophy', secondary: 'New York University' }]}
-	panel={{}}
+	panel={{ image: geometry, position: 'left top', fill: 'rgb(185, 185, 185)' }}
 	width="narrow"
+	tall
+	{motion}
 >
 	<RevealCard
 		revealTitle="Additional Information"
@@ -30,7 +59,7 @@
 			<Lightbox src={portrait} alt="Professor Tim Maudlin" caption="Professor Maudlin" />
 		{/snippet}
 
-		<p class="bio">{profile.bio}</p>
+		<p class="bio" data-motion="bio">{profile.bio}</p>
 
 		{#snippet reveal()}
 			{#each lists as list (list.heading)}
