@@ -44,3 +44,11 @@ npm run lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+
+### Svelte Rewrite
+
+It was a pain to get the scrolling right when I first did this with Vue js 6 years ago.
+Used Claude to rewrite this in Svelte which you'll find on this [branch](https://github.com/QuantumZenoSix/tim-maudlin/tree/sveltekit).
+Claude had trouble understanding my visions with the scrolling that I had in the original version but I eventually got it going.
+May merge the Svelte version into the main branch but leaving it in it's own branch for now.
