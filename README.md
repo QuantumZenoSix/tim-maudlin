@@ -56,6 +56,8 @@ To run one file or test: `npx playwright test e2e/motion.e2e.ts` or `npx playwri
 
 ## Where things are
 
+New to Svelte? [docs/how-it-works.md](docs/how-it-works.md) explains the tools, how the page is put together, and how to make common changes.
+
 - `src/lib/content.ts`: all text, links, books, videos and the contact email. Edit content here; every section renders from it.
 - `src/lib/sections/`: the page sections (Home, About, Books, Articles, Media, Contact).
 - `src/lib/components/`: shared pieces (navigation, flip-over card, lightbox, video gallery, section layout).

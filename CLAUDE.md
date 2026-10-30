@@ -32,8 +32,10 @@ Node 22.17+. Port 4173 must be free for the tests.
 
 ## Architecture
 
+`docs/how-it-works.md` is a newcomer's guide to Svelte and this codebase; update it when the things it describes change.
+
 - `src/routes/+page.svelte` renders the nav and the six sections in order from `src/lib/sections/`. All copy, links, books and videos are in `src/lib/content.ts`. Section ids (`home-link`, `about-tim-link`, `publications-I-link`, ...) are kept from the old site so old links still work.
-- `Section.svelte` is the shared layout (title card on the left, panel on the right). Widgets use native elements: `<dialog>` for the phone menu and lightbox, `<details name>` for the accordion, `RevealCard` for the flip-over cards.
+- `Section.svelte` is the shared layout (title card on the left, panel on the right). Widgets use native elements: `<dialog>` for the phone menu and lightbox, buttons with a `slide` transition for the accordion, `RevealCard` for the flip-over cards.
 - **Scroll choreography (`src/lib/motion.ts`).** The scattered, misplaced look mid-scroll is intentional: pieces fall into place as each section arrives. Each section passes a list of steps to `choreograph()`, which runs them with GSAP ScrollTrigger inside `gsap.matchMedia()`:
   - Steps target elements by `data-motion` name within their own section. Renaming or removing a `data-motion` attribute silently drops that part of the effect (dev builds warn).
   - Desktop steps are transcribed value for value from the original site; keep them faithful unless asked. Phones get the lighter `phoneAssembly()`. Reduced motion matches neither query, so nothing animates.
